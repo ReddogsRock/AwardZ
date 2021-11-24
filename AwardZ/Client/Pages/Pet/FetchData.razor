@@ -1,0 +1,65 @@
+﻿@page "/pet"
+@inject HttpClient client
+@inject IJSRuntime js
+
+<h3>Pets</h3>
+<small>Add as many pets as you wish.</small>
+<div class="form-group">
+    <a class="btn btn-success" href="pet/create"><i class="oi oi-plus"></i> Create New</a>
+</div>
+<br>
+
+@if (pets == null)
+{
+    <text>Loading...</text>
+}
+else if (pets.Length == 0)
+{
+    <text>No Records Found.</text>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Call Name</th>
+                <th>Gender</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Pet pet in pets)
+            {
+                <tr>
+                    <td>@pet.Id</td>
+                    <td>@pet.CallName</td>
+                    <td>@pet.Gender</td>
+                    <td>
+                        <a class="btn btn-success" href="pet/edit/@pet.Id">Edit</a>
+                        <button class="btn btn-danger" @onclick="@(() => Delete(pet.Id))">Delete</button>
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+}
+@code {
+    Pet[] pets { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        pets = await client.GetFromJsonAsync<Pet[]>("api/pet");
+    }
+
+    async Task Delete(int petId)
+    {
+        var pet = pets.First(x => x.Id == petId);
+        if (await js.InvokeAsync<bool>("confirm", $"Do you want to delete {pet.CallName}'s ({pet.Id}) Record?"))
+        {
+            await client.DeleteAsync($"api/pet/{petId}");
+            await OnInitializedAsync();
+        }
+    }
+}
+

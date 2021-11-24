@@ -1,0 +1,27 @@
+﻿@page "/pet/edit/{petId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject IJSRuntime js
+
+<h3>Edit</h3>
+
+<Form ButtonText="Update" pet="pet"
+      OnValidSubmit="@EditPet" />
+
+@code {
+    [Parameter] public int petId { get; set; }
+    Pet pet = new Pet();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        pet = await http.GetFromJsonAsync<Pet>($"api/pet/{petId}");
+    }
+
+    async Task EditPet()
+    {
+        await http.PutAsJsonAsync("api/pet", pet);
+        await js.InvokeVoidAsync("alert", $"Updated Successfully!");
+        uriHelper.NavigateTo("pet");
+
+    }
+}

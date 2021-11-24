@@ -1,0 +1,68 @@
+﻿@page "/person"
+@inject HttpClient client
+@inject IJSRuntime js
+
+<h3>Persons</h3>
+<small>Add as many people as you wish.</small>
+<div class="form-group">
+    <a class="btn btn-success" href="person/create"><i class="oi oi-plus"></i> Create New</a>
+</div>
+<br>
+
+@if (persons == null)
+{
+    <text>Loading...</text>
+}
+else if (persons.Length == 0)
+{
+    <text>No Records Found.</text>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Person person in persons)
+            {
+                <tr>
+                    <td>@person.Id</td>
+                    <td>@person.FirstName</td>
+                    <td>@person.LastName</td>
+                    <td>@person.Email</td>
+                    <td>
+                        <a class="btn btn-success" href="person/edit/@person.Id">Edit</a>
+                        <button class="btn btn-danger" @onclick="@(() => Delete(person.Id))">Delete</button>
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+}
+@code {
+    Person[] persons { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        persons = await client.GetFromJsonAsync<Person[]>("api/person");
+    }
+
+    async Task Delete(int personId)
+    {
+        var person = persons.First(x => x.Id == personId);
+        if (await js.InvokeAsync<bool>("confirm", $"Do you want to delete {person.FirstName}'s ({person.Id}) Record?"))
+        {
+            await client.DeleteAsync($"api/person/{personId}");
+            await OnInitializedAsync();
+        }
+    }
+}
+
+

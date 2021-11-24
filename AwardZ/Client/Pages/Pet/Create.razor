@@ -1,0 +1,17 @@
+﻿@page "/pet/create"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+
+<h3>Create</h3>
+
+<Form ButtonText="Create Pet" pet="@pet"
+            OnValidSubmit="@CreatePet" />
+
+@code {
+    Pet pet = new Pet();
+    async Task CreatePet()
+    {
+        await http.PostAsJsonAsync("api/pet", pet);
+        uriHelper.NavigateTo("pet");
+    }
+}
